@@ -87,6 +87,17 @@ export default function Work() {
             className="h-9 rounded-full border border-border bg-card px-3 text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         )}
+        {filter === "month" && (
+          <div className="ml-auto">
+            <ExportMenu
+              tasks={filtered}
+              clients={clients}
+              filename={`work-${format(new Date(), "yyyy-MM")}`}
+              title={`Work Report — ${format(new Date(), "MMMM yyyy")}`}
+              disabled={loading}
+            />
+          </div>
+        )}
       </div>
 
       {loading ? (
