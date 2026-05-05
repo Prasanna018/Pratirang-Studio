@@ -22,6 +22,35 @@ export default function Workspace() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
 
+  const grouped = useMemo(() => {
+    const map = new Map<number, Map<number, Task[]>>();
+    for (const t of clientTasks) {
+      const d = new Date(t.scheduledAt);
+      const y = d.getFullYear();
+      const m = d.getMonth();
+      if (!map.has(y)) map.set(y, new Map());
+      const months = map.get(y)!;
+      if (!months.has(m)) months.set(m, []);
+      months.get(m)!.push(t);
+    }
+    return Array.from(map.entries())
+      .sort((a, b) => b[0] - a[0])
+      .map(([year, months]) => ({
+        year,
+        months: Array.from(months.entries())
+          .sort((a, b) => b[0] - a[0])
+          .map(([month, tasks]) => ({ month, tasks })),
+      }));
+  }, [clientTasks]);
+
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+  const [openYears, setOpenYears] = useState<Record<number, boolean>>({ [currentYear]: true });
+  const [openMonths, setOpenMonths] = useState<Record<string, boolean>>({ [`${currentYear}-${currentMonth}`]: true });
+
+  const toggleYear = (y: number) => setOpenYears((p) => ({ ...p, [y]: !p[y] }));
+  const toggleMonth = (k: string) => setOpenMonths((p) => ({ ...p, [k]: !p[k] }));
+
   if (loading) {
     return (
       <div className="mx-auto max-w-5xl space-y-4">
