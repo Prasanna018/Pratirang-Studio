@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Task } from "@/types";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Shimmer } from "@/components/common/Skeleton";
+import { ExportMenu } from "@/components/common/ExportMenu";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -252,6 +253,17 @@ export default function Workspace() {
               transition={{ duration: 0.25 }}
               className="space-y-2"
             >
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {tasksForMonth.length} {tasksForMonth.length === 1 ? "task" : "tasks"} in {format(new Date(selectedYear!, selectedMonth!, 1), "MMMM yyyy")}
+                </div>
+                <ExportMenu
+                  tasks={tasksForMonth}
+                  clients={clients}
+                  filename={`${client.name.replace(/\s+/g, "-").toLowerCase()}-${format(new Date(selectedYear!, selectedMonth!, 1), "yyyy-MM")}`}
+                  title={`${client.name} — ${format(new Date(selectedYear!, selectedMonth!, 1), "MMMM yyyy")} Report`}
+                />
+              </div>
               <div className="grid grid-cols-12 gap-4 px-4 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <div className="col-span-12 sm:col-span-5">Task</div>
                 <div className="hidden sm:col-span-2 sm:block">Type</div>

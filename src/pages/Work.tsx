@@ -8,8 +8,10 @@ import { Plus, CalendarDays } from "lucide-react";
 import { Task } from "@/types";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Shimmer } from "@/components/common/Skeleton";
+import { ExportMenu } from "@/components/common/ExportMenu";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 type Filter = "today" | "tomorrow" | "upcoming" | "month" | "custom";
 
@@ -84,6 +86,17 @@ export default function Work() {
             onChange={(e) => setCustomDate(e.target.value)}
             className="h-9 rounded-full border border-border bg-card px-3 text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
+        )}
+        {filter === "month" && (
+          <div className="ml-auto">
+            <ExportMenu
+              tasks={filtered}
+              clients={clients}
+              filename={`work-${format(new Date(), "yyyy-MM")}`}
+              title={`Work Report — ${format(new Date(), "MMMM yyyy")}`}
+              disabled={loading}
+            />
+          </div>
         )}
       </div>
 
