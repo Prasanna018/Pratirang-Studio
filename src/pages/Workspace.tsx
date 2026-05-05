@@ -1,14 +1,15 @@
 import { useParams, Link } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Plus, ListTodo } from "lucide-react";
+import { ArrowLeft, Plus, ListTodo, ChevronDown, Folder, FolderOpen, CalendarDays } from "lucide-react";
 import { TaskFormModal } from "@/features/tasks/TaskFormModal";
 import { TaskRow } from "@/features/tasks/TaskRow";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Task } from "@/types";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Shimmer } from "@/components/common/Skeleton";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function Workspace() {
   const { id } = useParams();
