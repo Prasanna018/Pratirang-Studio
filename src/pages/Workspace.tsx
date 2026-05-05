@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Plus, ListTodo, ChevronDown, Folder, FolderOpen, CalendarDays } from "lucide-react";
+import { ArrowLeft, Plus, ListTodo, Folder, CalendarDays, ChevronRight } from "lucide-react";
 import { TaskFormModal } from "@/features/tasks/TaskFormModal";
 import { TaskRow } from "@/features/tasks/TaskRow";
 import { AnimatePresence, motion } from "framer-motion";
@@ -21,6 +21,8 @@ export default function Workspace() {
   );
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
   const grouped = useMemo(() => {
     const map = new Map<number, Map<number, Task[]>>();
@@ -33,23 +35,16 @@ export default function Workspace() {
       if (!months.has(m)) months.set(m, []);
       months.get(m)!.push(t);
     }
-    return Array.from(map.entries())
-      .sort((a, b) => b[0] - a[0])
-      .map(([year, months]) => ({
-        year,
-        months: Array.from(months.entries())
-          .sort((a, b) => b[0] - a[0])
-          .map(([month, tasks]) => ({ month, tasks })),
-      }));
+    return map;
   }, [clientTasks]);
 
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth();
-  const [openYears, setOpenYears] = useState<Record<number, boolean>>({ [currentYear]: true });
-  const [openMonths, setOpenMonths] = useState<Record<string, boolean>>({ [`${currentYear}-${currentMonth}`]: true });
-
-  const toggleYear = (y: number) => setOpenYears((p) => ({ ...p, [y]: !p[y] }));
-  const toggleMonth = (k: string) => setOpenMonths((p) => ({ ...p, [k]: !p[k] }));
+  const years = Array.from(grouped.keys()).sort((a, b) => b - a);
+  const monthsForYear = selectedYear !== null
+    ? Array.from(grouped.get(selectedYear)?.entries() ?? []).sort((a, b) => b[0] - a[0])
+    : [];
+  const tasksForMonth = selectedYear !== null && selectedMonth !== null
+    ? grouped.get(selectedYear)?.get(selectedMonth) ?? []
+    : [];
 
   if (loading) {
     return (
@@ -70,8 +65,11 @@ export default function Workspace() {
     );
   }
 
+  const view: "years" | "months" | "tasks" =
+    selectedYear === null ? "years" : selectedMonth === null ? "months" : "tasks";
+
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <Link to="/clients" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
         <ArrowLeft className="h-3.5 w-3.5" /> All clients
       </Link>
@@ -97,6 +95,35 @@ export default function Workspace() {
         </button>
       </div>
 
+      {/* Breadcrumb */}
+      <div className="mb-6 flex items-center gap-1.5 text-sm">
+        <button
+          onClick={() => { setSelectedYear(null); setSelectedMonth(null); }}
+          className={`rounded-lg px-2.5 py-1 transition hover:bg-surface-2 ${view === "years" ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+        >
+          All years
+        </button>
+        {selectedYear !== null && (
+          <>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            <button
+              onClick={() => setSelectedMonth(null)}
+              className={`rounded-lg px-2.5 py-1 transition hover:bg-surface-2 ${view === "months" ? "font-semibold text-foreground" : "text-muted-foreground"}`}
+            >
+              {selectedYear}
+            </button>
+          </>
+        )}
+        {selectedMonth !== null && selectedYear !== null && (
+          <>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="rounded-lg px-2.5 py-1 font-semibold text-foreground">
+              {format(new Date(selectedYear, selectedMonth, 1), "MMMM")}
+            </span>
+          </>
+        )}
+      </div>
+
       {clientTasks.length === 0 ? (
         <EmptyState
           icon={<ListTodo className="h-6 w-6" />}
@@ -109,102 +136,143 @@ export default function Workspace() {
           }
         />
       ) : (
-        <div className="space-y-4">
-          {grouped.map(({ year, months }) => {
-            const yearOpen = openYears[year] ?? false;
-            const yearTotal = months.reduce((s, m) => s + m.tasks.length, 0);
-            return (
-              <div key={year} className="overflow-hidden rounded-3xl border border-border bg-card shadow-soft">
-                <button
-                  onClick={() => toggleYear(year)}
-                  className="flex w-full items-center justify-between px-5 py-4 transition hover:bg-surface-2"
+        <AnimatePresence mode="wait">
+          {view === "years" && (
+            <motion.div
+              key="years"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.25 }}
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {years.map((y, i) => {
+                const total = Array.from(grouped.get(y)!.values()).reduce((s, arr) => s + arr.length, 0);
+                const monthCount = grouped.get(y)!.size;
+                return (
+                  <motion.button
+                    key={y}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04 }}
+                    whileHover={{ y: -4 }}
+                    onClick={() => setSelectedYear(y)}
+                    className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 text-left shadow-soft transition hover:shadow-elevated"
+                  >
+                    <div
+                      className="absolute inset-x-0 top-0 h-24 opacity-80 transition group-hover:opacity-100"
+                      style={{ background: `linear-gradient(135deg, hsl(${client.color}) 0%, hsl(${client.color} / 0.4) 100%)` }}
+                    />
+                    <div className="relative flex items-start justify-between">
+                      <div
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl text-primary-foreground shadow-soft"
+                        style={{ background: `hsl(${client.color})` }}
+                      >
+                        <Folder className="h-5 w-5" />
+                      </div>
+                      <span className="rounded-full bg-card/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground backdrop-blur">
+                        Year
+                      </span>
+                    </div>
+                    <div className="relative mt-10">
+                      <h3 className="font-display text-3xl text-foreground">{y}</h3>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{monthCount} {monthCount === 1 ? "month" : "months"}</p>
+                    </div>
+                    <div className="relative mt-5 flex items-center justify-between border-t border-border pt-4">
+                      <span className="text-xs text-muted-foreground">
+                        <span className="font-semibold text-foreground">{total}</span> tasks
+                      </span>
+                      <span className="text-xs font-medium text-primary opacity-0 transition group-hover:opacity-100">
+                        Open →
+                      </span>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          )}
+
+          {view === "months" && selectedYear !== null && (
+            <motion.div
+              key="months"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.25 }}
+              className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {monthsForYear.map(([m, mTasks], i) => (
+                <motion.button
+                  key={m}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  whileHover={{ y: -4 }}
+                  onClick={() => setSelectedMonth(m)}
+                  className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 text-left shadow-soft transition hover:shadow-elevated"
                 >
-                  <div className="flex items-center gap-3">
-                    {yearOpen ? <FolderOpen className="h-5 w-5 text-primary" /> : <Folder className="h-5 w-5 text-primary" />}
-                    <span className="font-display text-2xl">{year}</span>
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      {yearTotal} {yearTotal === 1 ? "task" : "tasks"}
+                  <div
+                    className="absolute inset-x-0 top-0 h-24 opacity-80 transition group-hover:opacity-100"
+                    style={{ background: `linear-gradient(135deg, hsl(${client.color}) 0%, hsl(${client.color} / 0.4) 100%)` }}
+                  />
+                  <div className="relative flex items-start justify-between">
+                    <div
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-primary-foreground shadow-soft"
+                      style={{ background: `hsl(${client.color})` }}
+                    >
+                      <CalendarDays className="h-5 w-5" />
+                    </div>
+                    <span className="rounded-full bg-card/90 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground backdrop-blur">
+                      {selectedYear}
                     </span>
                   </div>
-                  <motion.div animate={{ rotate: yearOpen ? 0 : -90 }} transition={{ duration: 0.2 }}>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </motion.div>
-                </button>
+                  <div className="relative mt-10">
+                    <h3 className="font-display text-3xl text-foreground">{format(new Date(selectedYear, m, 1), "MMMM")}</h3>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{format(new Date(selectedYear, m, 1), "MMM yyyy")}</p>
+                  </div>
+                  <div className="relative mt-5 flex items-center justify-between border-t border-border pt-4">
+                    <span className="text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">{mTasks.length}</span> tasks
+                    </span>
+                    <span className="text-xs font-medium text-primary opacity-0 transition group-hover:opacity-100">
+                      Open →
+                    </span>
+                  </div>
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
 
-                <AnimatePresence initial={false}>
-                  {yearOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.25 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="space-y-2 border-t border-border px-3 py-3">
-                        {months.map(({ month, tasks: mTasks }) => {
-                          const key = `${year}-${month}`;
-                          const monthOpen = openMonths[key] ?? false;
-                          const label = format(new Date(year, month, 1), "MMMM");
-                          return (
-                            <div key={key} className="overflow-hidden rounded-2xl border border-border bg-surface-2/50">
-                              <button
-                                onClick={() => toggleMonth(key)}
-                                className="flex w-full items-center justify-between px-4 py-3 transition hover:bg-surface-2"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <CalendarDays className="h-4 w-4 text-accent" />
-                                  <span className="text-sm font-semibold">{label}</span>
-                                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                    {mTasks.length}
-                                  </span>
-                                </div>
-                                <motion.div animate={{ rotate: monthOpen ? 0 : -90 }} transition={{ duration: 0.2 }}>
-                                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                                </motion.div>
-                              </button>
-                              <AnimatePresence initial={false}>
-                                {monthOpen && (
-                                  <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="overflow-hidden"
-                                  >
-                                    <div className="space-y-2 border-t border-border bg-background/40 p-3">
-                                      <div className="grid grid-cols-12 gap-4 px-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                        <div className="col-span-12 sm:col-span-5">Task</div>
-                                        <div className="hidden sm:col-span-2 sm:block">Type</div>
-                                        <div className="hidden sm:col-span-2 sm:block">Schedule</div>
-                                        <div className="hidden sm:col-span-2 sm:block">Status</div>
-                                        <div className="hidden sm:col-span-1 sm:block" />
-                                      </div>
-                                      <AnimatePresence>
-                                        {mTasks.map((t, i) => (
-                                          <TaskRow
-                                            key={t.id}
-                                            task={t}
-                                            index={i}
-                                            onEdit={() => { setEditing(t); setOpen(true); }}
-                                            onDelete={() => { deleteTask(t.id); toast.success("Task deleted"); }}
-                                          />
-                                        ))}
-                                      </AnimatePresence>
-                                    </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+          {view === "tasks" && (
+            <motion.div
+              key="tasks"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-2"
+            >
+              <div className="grid grid-cols-12 gap-4 px-4 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <div className="col-span-12 sm:col-span-5">Task</div>
+                <div className="hidden sm:col-span-2 sm:block">Type</div>
+                <div className="hidden sm:col-span-2 sm:block">Schedule</div>
+                <div className="hidden sm:col-span-2 sm:block">Status</div>
+                <div className="hidden sm:col-span-1 sm:block" />
               </div>
-            );
-          })}
-        </div>
+              <AnimatePresence>
+                {tasksForMonth.map((t, i) => (
+                  <TaskRow
+                    key={t.id}
+                    task={t}
+                    index={i}
+                    onEdit={() => { setEditing(t); setOpen(true); }}
+                    onDelete={() => { deleteTask(t.id); toast.success("Task deleted"); }}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       )}
 
       <TaskFormModal open={open} onClose={() => setOpen(false)} clientId={client.id} task={editing} />
