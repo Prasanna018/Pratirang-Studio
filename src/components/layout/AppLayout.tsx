@@ -3,9 +3,34 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Sidebar } from "./Sidebar";
 import { Navbar } from "./Navbar";
 import { RightSidebar } from "./RightSidebar";
+import { useEffect, useState } from "react";
+import { TaskFormModal } from "@/features/tasks/TaskFormModal";
 
 export function AppLayout() {
   const loc = useLocation();
+  const [quickOpen, setQuickOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "n" && e.key !== "N") return;
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName;
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          tag === "SELECT" ||
+          target.isContentEditable
+        ) return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      e.preventDefault();
+      setQuickOpen(true);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       <Sidebar />
@@ -29,6 +54,7 @@ export function AppLayout() {
           <RightSidebar />
         </div>
       </div>
+      <TaskFormModal open={quickOpen} onClose={() => setQuickOpen(false)} />
     </div>
   );
 }
