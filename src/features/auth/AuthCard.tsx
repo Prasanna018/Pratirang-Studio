@@ -1,0 +1,97 @@
+import { motion } from "framer-motion";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useApp } from "@/context/AppContext";
+import { Sparkles, Lock, User } from "lucide-react";
+import { toast } from "sonner";
+
+export function AuthCard({ mode }: { mode: "login" | "register" }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login } = useApp();
+  const navigate = useNavigate();
+
+  const isLogin = mode === "login";
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim() || password.length < 4) {
+      toast.error("Enter a username and a password (4+ chars).");
+      return;
+    }
+    setLoading(true);
+    setTimeout(() => {
+      login(username.trim());
+      toast.success(isLogin ? "Welcome back" : "Account created");
+      navigate("/dashboard");
+    }, 600);
+  };
+
+  return (
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden gradient-aurora p-4">
+      <div className="absolute inset-0 -z-10 bg-background" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: "spring", damping: 22, stiffness: 220 }}
+        className="w-full max-w-md rounded-3xl border border-border bg-card/80 p-8 shadow-elevated backdrop-blur-xl"
+      >
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl gradient-primary shadow-glow">
+            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <h1 className="font-display text-4xl">{isLogin ? "Welcome back" : "Create your studio"}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {isLogin ? "Sign in to your Orbit workspace" : "Start managing clients in seconds"}
+          </p>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-4">
+          <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+            <label className="mb-1.5 block text-xs font-medium text-foreground">Username</label>
+            <div className="relative">
+              <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="jane.doe"
+                className="h-11 w-full rounded-xl border border-border bg-surface-2 pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+            <label className="mb-1.5 block text-xs font-medium text-foreground">Password</label>
+            <div className="relative">
+              <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                type="password"
+                placeholder="••••••••"
+                className="h-11 w-full rounded-xl border border-border bg-surface-2 pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+          </motion.div>
+
+          <motion.button
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            disabled={loading}
+            className="mt-2 flex h-11 w-full items-center justify-center rounded-xl gradient-primary font-medium text-primary-foreground shadow-glow transition disabled:opacity-60"
+          >
+            {loading ? "Please wait…" : isLogin ? "Sign in" : "Create account"}
+          </motion.button>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          {isLogin ? "New to Orbit? " : "Already have an account? "}
+          <Link to={isLogin ? "/register" : "/login"} className="font-medium text-primary hover:underline">
+            {isLogin ? "Create an account" : "Sign in"}
+          </Link>
+        </p>
+      </motion.div>
+    </div>
+  );
+}
