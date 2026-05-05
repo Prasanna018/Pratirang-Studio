@@ -44,7 +44,7 @@ export function AuthCard({ mode }: { mode: "login" | "register" }) {
           </div>
           <h1 className="font-display text-4xl">{isLogin ? "Welcome back" : "Create your studio"}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {isLogin ? "Sign in to your Orbit workspace" : "Start managing clients in seconds"}
+            {isLogin ? "Sign in to your Pratirang workspace" : "Start managing clients in seconds"}
           </p>
         </div>
 
@@ -86,7 +86,7 @@ export function AuthCard({ mode }: { mode: "login" | "register" }) {
         </form>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          {isLogin ? "New to Orbit? " : "Already have an account? "}
+          {isLogin ? "New to Pratirang? " : "Already have an account? "}
           <Link to={isLogin ? "/register" : "/login"} className="font-medium text-primary hover:underline">
             {isLogin ? "Create an account" : "Sign in"}
           </Link>
