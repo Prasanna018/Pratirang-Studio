@@ -1,6 +1,6 @@
 import { useApp } from "@/context/AppContext";
 import { useMemo, useState } from "react";
-import { isToday, isTomorrow, isAfter, startOfDay, addDays, isSameDay } from "date-fns";
+import { isToday, isTomorrow, isAfter, startOfDay, addDays, isSameDay, isSameMonth } from "date-fns";
 import { TaskRow } from "@/features/tasks/TaskRow";
 import { TaskFormModal } from "@/features/tasks/TaskFormModal";
 import { AnimatePresence, motion } from "framer-motion";
@@ -11,7 +11,7 @@ import { Shimmer } from "@/components/common/Skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-type Filter = "today" | "tomorrow" | "upcoming" | "custom";
+type Filter = "today" | "tomorrow" | "upcoming" | "month" | "custom";
 
 export default function Work() {
   const { tasks, clients, loading, deleteTask } = useApp();
@@ -28,6 +28,7 @@ export default function Work() {
         if (filter === "tomorrow") return isTomorrow(d);
         if (filter === "upcoming")
           return isAfter(d, startOfDay(addDays(new Date(), 1))) && !isTomorrow(d);
+        if (filter === "month") return isSameMonth(d, new Date());
         if (filter === "custom" && customDate) return isSameDay(d, new Date(customDate));
         return true;
       })
@@ -39,6 +40,7 @@ export default function Work() {
     { id: "today", label: "Today" },
     { id: "tomorrow", label: "Tomorrow" },
     { id: "upcoming", label: "Upcoming" },
+    { id: "month", label: "This month" },
     { id: "custom", label: "Pick a date" },
   ];
 
