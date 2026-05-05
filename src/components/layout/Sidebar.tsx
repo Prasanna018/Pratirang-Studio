@@ -27,7 +27,7 @@ export function Sidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-display text-xl leading-none">Orbit</span>
+              <span className="font-display text-xl leading-none">Pratirang</span>
               <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Studio</span>
             </div>
           )}
