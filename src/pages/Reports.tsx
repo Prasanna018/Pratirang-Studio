@@ -138,10 +138,10 @@ export default function Reports() {
             <select 
               value={selectedClientId}
               onChange={(e) => setSelectedClientId(e.target.value)}
-              className="bg-transparent text-xs font-medium outline-none px-2 border-r border-border mr-1"
+              className="bg-card text-foreground text-xs font-medium outline-none px-2 py-1 rounded-lg border border-border mr-2 transition hover:bg-surface-2 cursor-pointer"
             >
-              <option value="all">All Clients</option>
-              {clients.map(c => <option key={c._id} value={c._id}>{c.client_name}</option>)}
+              <option value="all" className="bg-card text-foreground">All Clients</option>
+              {clients.map(c => <option key={c._id} value={c._id} className="bg-card text-foreground">{c.client_name}</option>)}
             </select>
             {(["week", "month", "quarter", "year", "custom"] as RangeType[]).map((r) => (
               <button
