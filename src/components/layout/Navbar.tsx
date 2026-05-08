@@ -1,14 +1,20 @@
-import { Search, Moon, Sun, Bell, LogOut } from "lucide-react";
+import { Search, Moon, Sun, Bell, LogOut, Menu } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { motion } from "framer-motion";
 
-export function Navbar() {
+export function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { user, logout, theme, toggleTheme } = useApp();
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? "U";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/80 px-6 backdrop-blur-xl">
-      <div className="relative max-w-md flex-1">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/80 px-4 md:px-6 backdrop-blur-xl">
+      <button
+        onClick={onMenuClick}
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground md:hidden"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+      <div className="relative max-w-sm flex-1 hidden xs:block">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           placeholder="Search clients, tasks, ideas…"

@@ -82,26 +82,26 @@ export default function Workspace() {
     selectedYear === null ? "years" : selectedMonth === null ? "months" : "tasks";
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-6xl px-0 sm:px-4 lg:px-0">
       <Link to="/clients" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
         <ArrowLeft className="h-3.5 w-3.5" /> All clients
       </Link>
 
-      <div className="mb-8 flex items-end justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
           <div
             className="flex h-16 w-16 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-elevated"
           >
             <span className="font-display text-2xl">{client.client_name.slice(0, 1)}</span>
           </div>
           <div>
-            <h1 className="font-display text-5xl tracking-tight">{client.client_name}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{client.description || "No description"}</p>
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight">{client.client_name}</h1>
+            <p className="mt-1 text-sm sm:text-base text-muted-foreground">{client.description || "No description"}</p>
           </div>
         </div>
         <button
           onClick={() => { setEditing(null); setOpen(true); }}
-          className="flex h-11 items-center gap-2 rounded-xl gradient-primary px-5 text-sm font-medium text-primary-foreground shadow-glow transition hover:-translate-y-0.5"
+          className="flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl gradient-primary px-5 text-sm font-medium text-primary-foreground shadow-glow transition hover:-translate-y-0.5"
         >
           <Plus className="h-4 w-4" /> New task
         </button>

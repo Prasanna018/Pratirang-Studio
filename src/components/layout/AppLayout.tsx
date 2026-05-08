@@ -12,7 +12,13 @@ import { Client } from "@/types";
 export function AppLayout() {
   const loc = useLocation();
   const [quickOpen, setQuickOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { data: clients = [] } = useSWR<Client[]>("/workspaces", fetcher);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileSidebarOpen(false);
+  }, [loc.pathname]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -37,9 +43,9 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      <Sidebar />
+      <Sidebar mobileOpen={mobileSidebarOpen} setMobileOpen={setMobileSidebarOpen} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Navbar />
+        <Navbar onMenuClick={() => setMobileSidebarOpen(true)} />
         <div className="flex min-w-0 flex-1">
           <main className="scrollbar-thin min-w-0 flex-1 overflow-x-hidden">
             <AnimatePresence mode="wait">

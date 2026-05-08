@@ -43,15 +43,15 @@ export default function Clients() {
   const taskCount = (id: string) => tasks.filter((t) => t.workspace_id === id).length;
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="mb-8 flex items-end justify-between">
+    <div className="mx-auto max-w-6xl px-0 sm:px-4 lg:px-0">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-5xl tracking-tight">Clients</h1>
-          <p className="mt-2 text-muted-foreground">Open a workspace to manage its content pipeline.</p>
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight">Clients</h1>
+          <p className="mt-2 text-sm sm:text-base text-muted-foreground">Open a workspace to manage its content pipeline.</p>
         </div>
         <button
           onClick={() => setOpen(true)}
-          className="flex h-11 items-center gap-2 rounded-xl gradient-primary px-5 text-sm font-medium text-primary-foreground shadow-glow transition hover:-translate-y-0.5"
+          className="flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl gradient-primary px-5 text-sm font-medium text-primary-foreground shadow-glow transition hover:-translate-y-0.5"
         >
           <Plus className="h-4 w-4" /> New workspace
         </button>

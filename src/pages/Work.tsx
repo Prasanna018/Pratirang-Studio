@@ -72,15 +72,15 @@ export default function Work() {
   const loading = tasksLoading || clientsLoading;
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="mb-6 flex items-end justify-between">
+    <div className="mx-auto max-w-6xl px-0 sm:px-4 lg:px-0">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-5xl tracking-tight">Work</h1>
-          <p className="mt-2 text-muted-foreground">Every scheduled piece, across every client.</p>
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight">Work</h1>
+          <p className="mt-2 text-sm sm:text-base text-muted-foreground">Every scheduled piece, across every client.</p>
         </div>
         <button
           onClick={() => { setEditing(null); setOpen(true); }}
-          className="flex h-11 items-center gap-2 rounded-xl gradient-primary px-5 text-sm font-medium text-primary-foreground shadow-glow transition hover:-translate-y-0.5"
+          className="flex h-11 w-full sm:w-auto items-center justify-center gap-2 rounded-xl gradient-primary px-5 text-sm font-medium text-primary-foreground shadow-glow transition hover:-translate-y-0.5"
         >
           <Plus className="h-4 w-4" /> New task
         </button>
@@ -113,7 +113,7 @@ export default function Work() {
           />
         )}
         {filter === "month" && (
-          <div className="ml-auto">
+          <div className="w-full sm:w-auto sm:ml-auto mt-2 sm:mt-0">
             <ExportMenu
               tasks={filtered}
               clients={clients}

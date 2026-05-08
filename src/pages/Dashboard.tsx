@@ -44,18 +44,18 @@ export default function Dashboard() {
   const clientName = (task: Task) => task.client_name || clients.find((c) => c._id === task.workspace_id)?.client_name || "—";
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
+    <div className="mx-auto max-w-6xl space-y-8 px-0 sm:px-4 lg:px-0">
       <div>
         <p className="text-sm text-muted-foreground">{format(new Date(), "EEEE, MMMM d")}</p>
-        <h1 className="mt-1 font-display text-5xl tracking-tight">
+        <h1 className="mt-1 font-display text-3xl sm:text-4xl lg:text-5xl tracking-tight">
           Hello, <span className="bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">{user?.username}</span>
         </h1>
-        <p className="mt-2 max-w-xl text-muted-foreground">
+        <p className="mt-2 max-w-xl text-sm sm:text-base text-muted-foreground">
           Here's a calm view of everything happening across your studio today.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s, i) => (
           <motion.div
             key={s.label}
