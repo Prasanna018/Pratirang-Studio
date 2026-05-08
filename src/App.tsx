@@ -19,6 +19,7 @@ import Reports from "./pages/Reports";
 import Clients from "./pages/Clients";
 import Workspace from "./pages/Workspace";
 import Work from "./pages/Work";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => {
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/clients/:id" element={<Workspace />} />
                 <Route path="/work" element={<Work />} />
+                <Route path="/settings" element={<Settings />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
