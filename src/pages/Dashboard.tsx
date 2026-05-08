@@ -38,7 +38,8 @@ export default function Dashboard() {
     .filter((t) => {
       const d = new Date(t.scheduled_date);
       const dayAfterTomorrow = startOfDay(addDays(new Date(), 2));
-      return d >= dayAfterTomorrow;
+      const endOfUpcoming = addDays(dayAfterTomorrow, 3);
+      return d >= dayAfterTomorrow && d < endOfUpcoming;
     })
     .sort((a, b) => +new Date(a.scheduled_date) - +new Date(b.scheduled_date));
 
