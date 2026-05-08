@@ -64,8 +64,10 @@ export function TaskFormModal({
         await apiRequest("/tasks", "POST", payload);
         toast.success("Task created");
       }
-      mutate("/tasks");
-      if (clientId) mutate(`/tasks?workspace_id=${clientId}`);
+      await mutate("/tasks", undefined, { revalidate: true });
+      if (clientId) {
+        await mutate(`/tasks?workspace_id=${clientId}`, undefined, { revalidate: true });
+      }
       onClose();
     } catch (err: any) {
       toast.error(err.message || "Failed to save task");
