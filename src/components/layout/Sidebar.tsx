@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 
 const items = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutGrid },
+  { to: "/work", label: "Work", icon: CalendarRange },
+  { to: "/clients", label: "Clients", icon: Users },
   { to: "/overview", label: "Overview", icon: Activity },
   { to: "/reports", label: "Reports", icon: BarChart3 },
-  { to: "/clients", label: "Clients", icon: Users },
-  { to: "/work", label: "Work", icon: CalendarRange },
 ];
 
 export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; setMobileOpen?: (o: boolean) => void }) {

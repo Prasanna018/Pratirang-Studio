@@ -251,9 +251,13 @@ export default function Reports() {
                     contentStyle={{ 
                       backgroundColor: 'hsl(var(--card))', 
                       borderColor: 'hsl(var(--border))',
-                      borderRadius: '16px',
-                      fontSize: '12px'
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      color: 'hsl(var(--foreground))',
+                      border: '1px solid hsl(var(--border))',
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)'
                     }} 
+                    itemStyle={{ color: 'hsl(var(--foreground))' }}
                   />
                   <Area 
                     type="monotone" 
