@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { LayoutGrid, Users, CalendarRange, ChevronLeft, Sparkles, X, Activity, BarChart3, Settings } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useApp } from "@/context/AppContext";
 
 const items = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutGrid },
@@ -15,7 +16,13 @@ const items = [
 
 export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; setMobileOpen?: (o: boolean) => void }) {
   const [collapsed, setCollapsed] = useState(false);
+  const { user } = useApp();
   const loc = useLocation();
+
+  const studioName = user?.studio_name || "Pratirang Studio";
+  const nameParts = studioName.split(" ");
+  const firstName = nameParts[0];
+  const restName = nameParts.slice(1).join(" ");
 
   const sidebarContent = (
     <>
@@ -26,8 +33,8 @@ export function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; s
           </div>
           {(mobileOpen || !collapsed) && (
             <div className="flex flex-col">
-              <span className="font-display text-xl leading-none">Pratirang</span>
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Studio</span>
+              <span className="font-display text-xl leading-none">{firstName}</span>
+              {restName && <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{restName}</span>}
             </div>
           )}
         </div>

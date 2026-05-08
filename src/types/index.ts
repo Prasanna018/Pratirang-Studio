@@ -28,6 +28,7 @@ export interface User {
   username: string;
   email: string;
   studio_id?: string;
+  studio_name?: string;
   role: "admin" | "staff";
   is_active: boolean;
 }
