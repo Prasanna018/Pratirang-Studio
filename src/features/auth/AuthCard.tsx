@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useApp } from "@/context/AppContext";
 import { Sparkles, Lock, User, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { apiRequest } from "@/lib/api";
+import { apiRequest, API_URL } from "@/lib/api";
 
 export function AuthCard({ mode }: { mode: "login" | "register" }) {
   const [username, setUsername] = useState("");
@@ -31,7 +31,7 @@ export function AuthCard({ mode }: { mode: "login" | "register" }) {
         formData.append('username', username.trim()); // In our API, username can be email or username
         formData.append('password', password);
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/login`, {
+        const response = await fetch(`${API_URL}/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -60,7 +60,7 @@ export function AuthCard({ mode }: { mode: "login" | "register" }) {
         formData.append('username', username.trim());
         formData.append('password', password);
         
-        const loginRes = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/auth/login`, {
+        const loginRes = await fetch(`${API_URL}/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: formData.toString(),
