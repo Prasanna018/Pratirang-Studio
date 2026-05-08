@@ -89,7 +89,7 @@ export default function Overview() {
                     </div>
                   </div>
                   <Link 
-                    to={`/workspace/${client._id}`}
+                    to={`/clients/${client._id}`}
                     className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface-2 text-muted-foreground transition hover:border-primary hover:bg-primary/10 hover:text-primary"
                   >
                     <ArrowRight className="h-4 w-4" />
