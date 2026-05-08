@@ -10,6 +10,7 @@ interface AppContextValue {
   theme: "light" | "dark";
   toggleTheme: () => void;
   isLoadingUser: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -71,7 +72,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logout, 
         theme, 
         toggleTheme, 
-        isLoadingUser 
+        isLoadingUser,
+        refreshUser: fetchMe
       }}
     >
       {children}

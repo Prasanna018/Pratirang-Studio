@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { Shimmer } from "@/components/common/Skeleton";
 
 export default function Settings() {
-  const { user } = useApp();
+  const { user, refreshUser } = useApp();
   const isAdmin = user?.role === "admin";
   const { data: studio, isLoading: studioLoading } = useSWR<Studio>(isAdmin ? "/studio/me" : null, fetcher);
   const { data: members = [], isLoading: membersLoading } = useSWR<User[]>(isAdmin ? "/studio/members" : null, fetcher);
@@ -34,6 +34,7 @@ export default function Settings() {
     try {
       await apiRequest("/studio/settings", "PUT", { name: studioName || studio?.name });
       toast.success("Studio settings updated");
+      await refreshUser(); // Update global user/studio state
       mutate("/studio/me");
     } catch {
       toast.error("Failed to update studio");
