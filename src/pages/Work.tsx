@@ -1,43 +1,56 @@
-import { useApp } from "@/context/AppContext";
 import { useMemo, useState } from "react";
 import { isToday, isTomorrow, isAfter, startOfDay, addDays, isSameDay, isSameMonth } from "date-fns";
 import { TaskRow } from "@/features/tasks/TaskRow";
 import { TaskFormModal } from "@/features/tasks/TaskFormModal";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, CalendarDays } from "lucide-react";
-import { Task } from "@/types";
+import { Task, Client } from "@/types";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Shimmer } from "@/components/common/Skeleton";
 import { ExportMenu } from "@/components/common/ExportMenu";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import useSWR, { useSWRConfig } from "swr";
+import { fetcher, apiRequest } from "@/lib/api";
 
 type Filter = "today" | "tomorrow" | "upcoming" | "month" | "custom";
 
 export default function Work() {
-  const { tasks, clients, loading, deleteTask } = useApp();
+  const { mutate } = useSWRConfig();
   const [filter, setFilter] = useState<Filter>("today");
   const [customDate, setCustomDate] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
 
+  // Determine API endpoint based on filter
+  const getEndpoint = () => {
+    if (["today", "tomorrow", "upcoming"].includes(filter)) {
+      return `/tasks?filter=${filter}`;
+    }
+    return "/tasks";
+  };
+
+  const { data: tasks = [], isLoading: tasksLoading } = useSWR<Task[]>(getEndpoint(), fetcher);
+  const { data: clients = [], isLoading: clientsLoading } = useSWR<Client[]>("/workspaces", fetcher);
+
   const filtered = useMemo(() => {
+    // If it's one of the backend-filtered ones, just return tasks
+    if (["today", "tomorrow", "upcoming"].includes(filter)) return tasks;
+    
+    // Otherwise filter in frontend
     return tasks
       .filter((t) => {
-        const d = new Date(t.scheduledAt);
-        if (filter === "today") return isToday(d);
-        if (filter === "tomorrow") return isTomorrow(d);
-        if (filter === "upcoming")
-          return isAfter(d, startOfDay(addDays(new Date(), 1))) && !isTomorrow(d);
+        const d = new Date(t.scheduled_date);
         if (filter === "month") return isSameMonth(d, new Date());
         if (filter === "custom" && customDate) return isSameDay(d, new Date(customDate));
         return true;
       })
-      .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt));
+      .sort((a, b) => +new Date(a.scheduled_date) - +new Date(b.scheduled_date));
   }, [tasks, filter, customDate]);
 
-  const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "—";
+  const clientName = (task: Task) => task.client_name || clients.find((c) => c._id === task.workspace_id)?.client_name || "—";
+  
   const filters: { id: Filter; label: string }[] = [
     { id: "today", label: "Today" },
     { id: "tomorrow", label: "Tomorrow" },
@@ -45,6 +58,18 @@ export default function Work() {
     { id: "month", label: "This month" },
     { id: "custom", label: "Pick a date" },
   ];
+
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await apiRequest(`/tasks/${taskId}`, "DELETE");
+      toast.success("Task deleted");
+      mutate(getEndpoint());
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete task");
+    }
+  };
+
+  const loading = tasksLoading || clientsLoading;
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -112,22 +137,30 @@ export default function Work() {
         />
       ) : (
         <div className="space-y-2">
+          <div className="grid grid-cols-12 gap-4 px-4 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="col-span-12 sm:col-span-2">Client</div>
+            <div className="col-span-12 sm:col-span-3">Task</div>
+            <div className="hidden sm:col-span-2 sm:block">Type</div>
+            <div className="hidden sm:col-span-2 sm:block">Schedule</div>
+            <div className="hidden sm:col-span-2 sm:block">Status</div>
+            <div className="hidden sm:col-span-1 sm:block text-right pr-2">Action</div>
+          </div>
           <AnimatePresence>
             {filtered.map((t, i) => (
               <TaskRow
-                key={t.id}
+                key={t._id}
                 task={t}
                 index={i}
-                clientName={clientName(t.clientId)}
+                clientName={clientName(t)}
                 onEdit={() => { setEditing(t); setOpen(true); }}
-                onDelete={() => { deleteTask(t.id); toast.success("Task deleted"); }}
+                onDelete={() => handleDeleteTask(t._id)}
               />
             ))}
           </AnimatePresence>
         </div>
       )}
 
-      <TaskFormModal open={open} onClose={() => setOpen(false)} task={editing} />
+      <TaskFormModal open={open} onClose={() => setOpen(false)} task={editing} clients={clients} />
     </div>
   );
 }

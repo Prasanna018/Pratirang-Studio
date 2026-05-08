@@ -1,25 +1,27 @@
 import { useParams, Link } from "react-router-dom";
-import { useApp } from "@/context/AppContext";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Plus, ListTodo, Folder, CalendarDays, ChevronRight } from "lucide-react";
 import { TaskFormModal } from "@/features/tasks/TaskFormModal";
 import { TaskRow } from "@/features/tasks/TaskRow";
 import { AnimatePresence, motion } from "framer-motion";
-import { Task } from "@/types";
+import { Task, Client } from "@/types";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Shimmer } from "@/components/common/Skeleton";
 import { ExportMenu } from "@/components/common/ExportMenu";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import useSWR, { useSWRConfig } from "swr";
+import { fetcher, apiRequest } from "@/lib/api";
 
 export default function Workspace() {
   const { id } = useParams();
-  const { clients, tasks, loading, deleteTask } = useApp();
-  const client = clients.find((c) => c.id === id);
-  const clientTasks = useMemo(
-    () => tasks.filter((t) => t.clientId === id).sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt)),
-    [tasks, id]
-  );
+  const { mutate } = useSWRConfig();
+  const { data: clients = [], isLoading: clientsLoading } = useSWR<Client[]>("/workspaces", fetcher);
+  const { data: clientTasks = [], isLoading: tasksLoading } = useSWR<Task[]>(id ? `/tasks?workspace_id=${id}` : null, fetcher);
+  
+  const client = clients.find((c) => c._id === id);
+  const sortedTasks = useMemo(() => [...clientTasks].sort((a, b) => +new Date(a.scheduled_date) - +new Date(b.scheduled_date)), [clientTasks]);
+
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -27,8 +29,8 @@ export default function Workspace() {
 
   const grouped = useMemo(() => {
     const map = new Map<number, Map<number, Task[]>>();
-    for (const t of clientTasks) {
-      const d = new Date(t.scheduledAt);
+    for (const t of sortedTasks) {
+      const d = new Date(t.scheduled_date);
       const y = d.getFullYear();
       const m = d.getMonth();
       if (!map.has(y)) map.set(y, new Map());
@@ -37,7 +39,7 @@ export default function Workspace() {
       months.get(m)!.push(t);
     }
     return map;
-  }, [clientTasks]);
+  }, [sortedTasks]);
 
   const years = Array.from(grouped.keys()).sort((a, b) => b - a);
   const monthsForYear = selectedYear !== null
@@ -47,7 +49,17 @@ export default function Workspace() {
     ? grouped.get(selectedYear)?.get(selectedMonth) ?? []
     : [];
 
-  if (loading) {
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await apiRequest(`/tasks/${taskId}`, "DELETE");
+      toast.success("Task deleted");
+      mutate(`/tasks?workspace_id=${id}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete task");
+    }
+  };
+
+  if (clientsLoading || tasksLoading) {
     return (
       <div className="mx-auto max-w-5xl space-y-4">
         <Shimmer className="h-12 w-1/2" />
@@ -78,14 +90,13 @@ export default function Workspace() {
       <div className="mb-8 flex items-end justify-between gap-4">
         <div className="flex items-center gap-4">
           <div
-            className="flex h-16 w-16 items-center justify-center rounded-3xl text-primary-foreground shadow-elevated"
-            style={{ background: `hsl(${client.color})` }}
+            className="flex h-16 w-16 items-center justify-center rounded-3xl bg-primary text-primary-foreground shadow-elevated"
           >
-            <span className="font-display text-2xl">{client.name.slice(0, 1)}</span>
+            <span className="font-display text-2xl">{client.client_name.slice(0, 1)}</span>
           </div>
           <div>
-            <h1 className="font-display text-5xl tracking-tight">{client.name}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">{client.handle} · {client.industry}</p>
+            <h1 className="font-display text-5xl tracking-tight">{client.client_name}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{client.description || "No description"}</p>
           </div>
         </div>
         <button
@@ -161,13 +172,11 @@ export default function Workspace() {
                     className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 text-left shadow-soft transition hover:shadow-elevated"
                   >
                     <div
-                      className="absolute inset-x-0 top-0 h-24 opacity-80 transition group-hover:opacity-100"
-                      style={{ background: `linear-gradient(135deg, hsl(${client.color}) 0%, hsl(${client.color} / 0.4) 100%)` }}
+                      className="absolute inset-x-0 top-0 h-24 opacity-80 transition group-hover:opacity-100 bg-gradient-to-br from-primary/20 to-primary/5"
                     />
                     <div className="relative flex items-start justify-between">
                       <div
-                        className="flex h-12 w-12 items-center justify-center rounded-2xl text-primary-foreground shadow-soft"
-                        style={{ background: `hsl(${client.color})` }}
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft"
                       >
                         <Folder className="h-5 w-5" />
                       </div>
@@ -213,13 +222,11 @@ export default function Workspace() {
                   className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 text-left shadow-soft transition hover:shadow-elevated"
                 >
                   <div
-                    className="absolute inset-x-0 top-0 h-24 opacity-80 transition group-hover:opacity-100"
-                    style={{ background: `linear-gradient(135deg, hsl(${client.color}) 0%, hsl(${client.color} / 0.4) 100%)` }}
+                    className="absolute inset-x-0 top-0 h-24 opacity-80 transition group-hover:opacity-100 bg-gradient-to-br from-primary/20 to-primary/5"
                   />
                   <div className="relative flex items-start justify-between">
                     <div
-                      className="flex h-12 w-12 items-center justify-center rounded-2xl text-primary-foreground shadow-soft"
-                      style={{ background: `hsl(${client.color})` }}
+                      className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft"
                     >
                       <CalendarDays className="h-5 w-5" />
                     </div>
@@ -260,25 +267,26 @@ export default function Workspace() {
                 <ExportMenu
                   tasks={tasksForMonth}
                   clients={clients}
-                  filename={`${client.name.replace(/\s+/g, "-").toLowerCase()}-${format(new Date(selectedYear!, selectedMonth!, 1), "yyyy-MM")}`}
-                  title={`${client.name} — ${format(new Date(selectedYear!, selectedMonth!, 1), "MMMM yyyy")} Report`}
+                  filename={`${client.client_name.replace(/\s+/g, "-").toLowerCase()}-${format(new Date(selectedYear!, selectedMonth!, 1), "yyyy-MM")}`}
+                  title={`${client.client_name} — ${format(new Date(selectedYear!, selectedMonth!, 1), "MMMM yyyy")} Report`}
                 />
               </div>
               <div className="grid grid-cols-12 gap-4 px-4 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                <div className="col-span-12 sm:col-span-5">Task</div>
+                <div className="col-span-12 sm:col-span-4">Task</div>
                 <div className="hidden sm:col-span-2 sm:block">Type</div>
                 <div className="hidden sm:col-span-2 sm:block">Schedule</div>
                 <div className="hidden sm:col-span-2 sm:block">Status</div>
-                <div className="hidden sm:col-span-1 sm:block" />
+                <div className="hidden sm:col-span-1 sm:block text-right pr-2">Action</div>
               </div>
               <AnimatePresence>
                 {tasksForMonth.map((t, i) => (
                   <TaskRow
-                    key={t.id}
+                    key={t._id}
                     task={t}
                     index={i}
+                    showClient={false}
                     onEdit={() => { setEditing(t); setOpen(true); }}
-                    onDelete={() => { deleteTask(t.id); toast.success("Task deleted"); }}
+                    onDelete={() => handleDeleteTask(t._id)}
                   />
                 ))}
               </AnimatePresence>
@@ -287,7 +295,7 @@ export default function Workspace() {
         </AnimatePresence>
       )}
 
-      <TaskFormModal open={open} onClose={() => setOpen(false)} clientId={client.id} task={editing} />
+      <TaskFormModal open={open} onClose={() => setOpen(false)} clientId={client._id} task={editing} clients={clients} />
     </div>
   );
 }

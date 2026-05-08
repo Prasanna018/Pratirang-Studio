@@ -5,10 +5,14 @@ import { Navbar } from "./Navbar";
 import { RightSidebar } from "./RightSidebar";
 import { useEffect, useState } from "react";
 import { TaskFormModal } from "@/features/tasks/TaskFormModal";
+import useSWR from "swr";
+import { fetcher } from "@/lib/api";
+import { Client } from "@/types";
 
 export function AppLayout() {
   const loc = useLocation();
   const [quickOpen, setQuickOpen] = useState(false);
+  const { data: clients = [] } = useSWR<Client[]>("/workspaces", fetcher);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -54,7 +58,11 @@ export function AppLayout() {
           <RightSidebar />
         </div>
       </div>
-      <TaskFormModal open={quickOpen} onClose={() => setQuickOpen(false)} />
+      <TaskFormModal 
+        open={quickOpen} 
+        onClose={() => setQuickOpen(false)} 
+        clients={clients}
+      />
     </div>
   );
 }

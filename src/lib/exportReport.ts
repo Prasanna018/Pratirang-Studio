@@ -12,10 +12,10 @@ export interface ExportRow {
 function buildRows(tasks: Task[], clients: Client[]): ExportRow[] {
   return tasks
     .slice()
-    .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt))
+    .sort((a, b) => +new Date(a.scheduled_date) - +new Date(b.scheduled_date))
     .map((t) => ({
       task: t,
-      clientName: clients.find((c) => c.id === t.clientId)?.name ?? "—",
+      clientName: t.client_name || clients.find((c) => c._id === t.workspace_id)?.client_name || "—",
     }));
 }
 
@@ -28,21 +28,20 @@ export function exportTasksToExcel(
   const rows = buildRows(tasks, clients);
   const data = [
     [title],
-    [`Generated: ${format(new Date(), "PPpp")}`],
+    [`Generated: ${format(new Date(), "PPP")}`],
     [`Total tasks: ${rows.length}`],
     [],
-    ["Date", "Title", "Client", "Type", "Status", "Notes"],
+    ["Date", "Title", "Client", "Type", "Status"],
     ...rows.map(({ task, clientName }) => [
-      format(new Date(task.scheduledAt), "yyyy-MM-dd HH:mm"),
+      format(new Date(task.scheduled_date), "yyyy-MM-dd"),
       task.title,
       clientName,
-      task.postType,
+      task.post_type,
       task.status,
-      task.notes ?? "",
     ]),
   ];
   const ws = XLSX.utils.aoa_to_sheet(data);
-  ws["!cols"] = [{ wch: 18 }, { wch: 36 }, { wch: 22 }, { wch: 12 }, { wch: 14 }, { wch: 40 }];
+  ws["!cols"] = [{ wch: 18 }, { wch: 36 }, { wch: 22 }, { wch: 12 }, { wch: 14 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Report");
   XLSX.writeFile(wb, `${filename}.xlsx`);
@@ -61,19 +60,18 @@ export function exportTasksToPDF(
   doc.text(title, 14, 18);
   doc.setFontSize(10);
   doc.setTextColor(120);
-  doc.text(`Generated: ${format(new Date(), "PPpp")}`, 14, 25);
+  doc.text(`Generated: ${format(new Date(), "PPP")}`, 14, 25);
   doc.text(`Total tasks: ${rows.length}`, 14, 31);
 
   autoTable(doc, {
     startY: 38,
-    head: [["Date", "Title", "Client", "Type", "Status", "Notes"]],
+    head: [["Date", "Title", "Client", "Type", "Status"]],
     body: rows.map(({ task, clientName }) => [
-      format(new Date(task.scheduledAt), "MMM d, yyyy HH:mm"),
+      format(new Date(task.scheduled_date), "MMM d, yyyy"),
       task.title,
       clientName,
-      task.postType,
+      task.post_type,
       task.status,
-      task.notes ?? "",
     ]),
     styles: { fontSize: 9, cellPadding: 3 },
     headStyles: { fillColor: [99, 102, 241], textColor: 255 },

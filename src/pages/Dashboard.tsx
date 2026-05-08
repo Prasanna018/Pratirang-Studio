@@ -4,9 +4,16 @@ import { Users, CalendarCheck, Clock3, Sparkles, ArrowUpRight } from "lucide-rea
 import { format, isToday } from "date-fns";
 import { Shimmer } from "@/components/common/Skeleton";
 import { StatusBadge } from "@/components/common/StatusBadge";
+import useSWR from "swr";
+import { fetcher } from "@/lib/api";
+import { Client, Task } from "@/types";
 
 export default function Dashboard() {
-  const { tasks, clients, loading, user } = useApp();
+  const { user } = useApp();
+  const { data: clients = [], isLoading: clientsLoading } = useSWR<Client[]>("/workspaces", fetcher);
+  const { data: tasks = [], isLoading: tasksLoading } = useSWR<Task[]>("/tasks", fetcher);
+
+  const loading = clientsLoading || tasksLoading;
 
   const stats = [
     { label: "Active clients", value: clients.length, icon: Users, accent: "from-primary/20 to-primary/5", tone: "text-primary" },
@@ -26,15 +33,15 @@ export default function Dashboard() {
     },
     {
       label: "Published today",
-      value: tasks.filter((t) => t.status === "uploaded" && isToday(new Date(t.scheduledAt))).length,
+      value: tasks.filter((t) => t.status === "uploaded" && isToday(new Date(t.scheduled_date))).length,
       icon: Sparkles,
       accent: "from-accent/20 to-accent/5",
       tone: "text-accent",
     },
   ];
 
-  const recent = [...tasks].sort((a, b) => +new Date(b.scheduledAt) - +new Date(a.scheduledAt)).slice(0, 6);
-  const clientName = (id: string) => clients.find((c) => c.id === id)?.name ?? "—";
+  const recent = [...tasks].sort((a, b) => +new Date(b.scheduled_date) - +new Date(a.scheduled_date)).slice(0, 6);
+  const clientName = (task: Task) => task.client_name || clients.find((c) => c._id === task.workspace_id)?.client_name || "—";
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -86,7 +93,7 @@ export default function Dashboard() {
               ? [0, 1, 2, 3].map((i) => <Shimmer key={i} className="h-14 rounded-2xl" />)
               : recent.map((t, i) => (
                   <motion.div
-                    key={t.id}
+                    key={t._id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.04 }}
@@ -94,18 +101,18 @@ export default function Dashboard() {
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 font-display text-primary">
-                        {clientName(t.clientId).slice(0, 1)}
+                        {clientName(t).slice(0, 1)}
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-sm font-medium">{t.title}</div>
                         <div className="text-xs text-muted-foreground">
-                          {clientName(t.clientId)} · {t.postType}
+                          {clientName(t)} · {t.post_type}
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="hidden text-xs text-muted-foreground sm:block">
-                        {format(new Date(t.scheduledAt), "MMM d")}
+                        {format(new Date(t.scheduled_date), "MMM d, yyyy")}
                       </span>
                       <StatusBadge status={t.status} />
                     </div>
