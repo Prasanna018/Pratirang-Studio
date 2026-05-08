@@ -1,4 +1,5 @@
 import { useApp } from "@/context/AppContext";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Users, CalendarCheck, Clock3, Sparkles, ArrowUpRight } from "lucide-react";
 import { format, isToday } from "date-fns";
@@ -84,9 +85,9 @@ export default function Dashboard() {
         >
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display text-2xl">Recent activity</h2>
-            <button className="flex items-center gap-1 text-xs text-muted-foreground transition hover:text-foreground">
+            <Link to="/work" className="flex items-center gap-1 text-xs text-muted-foreground transition hover:text-foreground">
               View all <ArrowUpRight className="h-3 w-3" />
-            </button>
+            </Link>
           </div>
           <div className="space-y-2">
             {loading
