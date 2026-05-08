@@ -2,13 +2,16 @@ import { Navigate } from "react-router-dom";
 import { ReactNode } from "react";
 import { useApp } from "@/context/AppContext";
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+export function PublicRoute({ children }: { children: ReactNode }) {
   const { user, isLoadingUser } = useApp();
-  
+
   if (isLoadingUser) {
-    return null; // Or a small loader
+    return null;
   }
-  
-  if (!user) return <Navigate to="/login" replace />;
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 }
