@@ -2,7 +2,7 @@ import { useApp } from "@/context/AppContext";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Users, CalendarCheck, Clock3, Sparkles, ArrowUpRight } from "lucide-react";
-import { format, isToday } from "date-fns";
+import { format, isToday, subWeeks, startOfWeek } from "date-fns";
 import { Shimmer } from "@/components/common/Skeleton";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import useSWR from "swr";
@@ -15,6 +15,20 @@ export default function Dashboard() {
   const { data: tasks = [], isLoading: tasksLoading } = useSWR<Task[]>("/tasks", fetcher);
 
   const loading = clientsLoading || tasksLoading;
+
+  // Calculate real data for the summary card
+  const now = new Date();
+  const startOfThisWeek = startOfWeek(now);
+  const startOfLastWeek = subWeeks(startOfThisWeek, 1);
+
+  const countThisWeek = tasks.filter(t => new Date(t.scheduled_date) >= startOfThisWeek).length;
+  const countLastWeek = tasks.filter(t => {
+    const d = new Date(t.scheduled_date);
+    return d >= startOfLastWeek && d < startOfThisWeek;
+  }).length;
+
+  const diff = countLastWeek === 0 ? (countThisWeek > 0 ? 100 : 0) : Math.round(((countThisWeek - countLastWeek) / countLastWeek) * 100);
+  const isAhead = diff >= 0;
 
   const stats = [
     { label: "Active clients", value: clients.length, icon: Users, accent: "from-primary/20 to-primary/5", tone: "text-primary" },
@@ -131,14 +145,20 @@ export default function Dashboard() {
           <Sparkles className="absolute right-4 top-4 h-5 w-5 opacity-70" />
           <div className="text-xs font-medium uppercase tracking-widest opacity-80">This week</div>
           <h3 className="mt-2 font-display text-3xl leading-tight">
-            You're 18% ahead of last week's pace.
+            {loading ? (
+              <Shimmer className="h-20 w-full" />
+            ) : (
+              <>
+                You're {Math.abs(diff)}% {isAhead ? "ahead of" : "behind"} last week's pace.
+              </>
+            )}
           </h3>
           <p className="mt-3 text-sm opacity-80">
-            Keep the momentum — review tomorrow's queue to stay on track.
+            {countThisWeek} tasks scheduled this week. {isAhead ? "Great job keeping the momentum!" : "Time to pick up the pace to hit your targets."}
           </p>
-          <button className="mt-6 rounded-xl bg-primary-foreground/20 px-4 py-2 text-xs font-medium backdrop-blur transition hover:bg-primary-foreground/30">
-            Open weekly report
-          </button>
+          <Link to="/work" className="mt-6 inline-block rounded-xl bg-primary-foreground/20 px-4 py-2 text-xs font-medium backdrop-blur transition hover:bg-primary-foreground/30">
+            View week's queue
+          </Link>
         </motion.div>
       </div>
     </div>
