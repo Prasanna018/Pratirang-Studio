@@ -152,11 +152,9 @@ export function AuthCard({ mode }: { mode: "login" | "register" }) {
           </motion.button>
         </form>
 
+
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          {isLogin ? "New here? " : "Already have an account? "}
-          <Link to={isLogin ? "/register" : "/login"} className="font-medium text-primary hover:underline">
-            {isLogin ? "Create an account" : "Sign in"}
-          </Link>
+          Your account is managed by your studio administrator.
         </p>
       </motion.div>
     </div>

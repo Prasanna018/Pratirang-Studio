@@ -12,7 +12,7 @@ import { PublicRoute } from "@/components/auth/PublicRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+
 import Dashboard from "./pages/Dashboard";
 import Overview from "./pages/Overview";
 import Reports from "./pages/Reports";
@@ -42,7 +42,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-              <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+
               <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/overview" element={<Overview />} />
