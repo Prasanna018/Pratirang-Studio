@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import Overview from "./pages/Overview";
 import Clients from "./pages/Clients";
 import Workspace from "./pages/Workspace";
 import Work from "./pages/Work";
@@ -42,6 +43,7 @@ const App = () => {
               <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
               <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/overview" element={<Overview />} />
                 <Route path="/clients" element={<Clients />} />
                 <Route path="/clients/:id" element={<Workspace />} />
                 <Route path="/work" element={<Work />} />

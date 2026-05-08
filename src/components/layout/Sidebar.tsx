@@ -1,11 +1,12 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { LayoutDashboard, Users, CalendarRange, ChevronLeft, Sparkles, X } from "lucide-react";
+import { LayoutGrid, Users, CalendarRange, ChevronLeft, Sparkles, X, Activity } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const items = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutGrid },
+  { to: "/overview", label: "Overview", icon: Activity },
   { to: "/clients", label: "Clients", icon: Users },
   { to: "/work", label: "Work", icon: CalendarRange },
 ];
