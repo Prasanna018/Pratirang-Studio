@@ -29,6 +29,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const fetchMe = useCallback(async () => {
+    // If we are on login/register/root, don't auto-fetch if we're clearly not logged in
+    const isPublic = ["/", "/login", "/register"].includes(window.location.pathname);
+    
     try {
       const data = await apiRequest("/auth/me");
       setUser(data);
