@@ -1,41 +1,34 @@
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const refreshToken = async () => {
-  const refresh = localStorage.getItem("clientflow_refresh");
-  if (!refresh) return null;
-
   try {
-    const res = await fetch(`${API_URL}/auth/refresh?refresh_token=${refresh}`, {
+    const res = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
+      credentials: 'include',
     });
     if (!res.ok) throw new Error();
-    const data = await res.json();
-    localStorage.setItem("clientflow_token", data.access_token);
-    localStorage.setItem("clientflow_refresh", data.refresh_token);
-    return data.access_token;
+    return true;
   } catch {
-    localStorage.removeItem("clientflow_token");
-    localStorage.removeItem("clientflow_refresh");
     window.location.href = "/login";
     return null;
   }
 };
 
 export const fetcher = async (url: string) => {
-  let token = localStorage.getItem("clientflow_token");
-  let res = await fetch(`${API_URL}${url}`, {
+  const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
+  let res = await fetch(fullUrl, {
+    credentials: 'include',
     headers: {
-      'Authorization': token ? `Bearer ${token}` : '',
       'Content-Type': 'application/json',
     },
   });
 
   if (res.status === 401) {
-    const newToken = await refreshToken();
-    if (newToken) {
-      res = await fetch(`${API_URL}${url}`, {
+    const refreshed = await refreshToken();
+    if (refreshed) {
+      res = await fetch(fullUrl, {
+        credentials: 'include',
         headers: {
-          'Authorization': `Bearer ${newToken}`,
           'Content-Type': 'application/json',
         },
       });
@@ -51,27 +44,23 @@ export const fetcher = async (url: string) => {
 };
 
 export const apiRequest = async (url: string, method: string = 'GET', body?: any) => {
-  let token = localStorage.getItem("clientflow_token");
-  let res = await fetch(`${API_URL}${url}`, {
+  const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
+  
+  const options: RequestInit = {
     method,
     headers: {
-      'Authorization': token ? `Bearer ${token}` : '',
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: body ? JSON.stringify(body) : undefined,
-  });
+  };
+
+  let res = await fetch(fullUrl, options);
 
   if (res.status === 401) {
-    const newToken = await refreshToken();
-    if (newToken) {
-      res = await fetch(`${API_URL}${url}`, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${newToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: body ? JSON.stringify(body) : undefined,
-      });
+    const refreshed = await refreshToken();
+    if (refreshed) {
+      res = await fetch(fullUrl, options);
     }
   }
 

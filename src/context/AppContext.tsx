@@ -5,7 +5,7 @@ import { apiRequest } from "@/lib/api";
 interface AppContextValue {
   user: User | null;
   setUser: (user: User | null) => void;
-  login: (token: string, refresh: string) => Promise<void>;
+  login: () => Promise<void>;
   logout: () => void;
   theme: "light" | "dark";
   toggleTheme: () => void;
@@ -29,18 +29,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [theme]);
 
   const fetchMe = useCallback(async () => {
-    const token = localStorage.getItem("clientflow_token");
-    if (!token) {
-      setIsLoadingUser(false);
-      return;
-    }
     try {
       const data = await apiRequest("/auth/me");
       setUser(data);
     } catch (err) {
-      console.error("Failed to fetch user", err);
-      localStorage.removeItem("clientflow_token");
-      localStorage.removeItem("clientflow_refresh");
       setUser(null);
     } finally {
       setIsLoadingUser(false);
@@ -51,14 +43,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     fetchMe();
   }, [fetchMe]);
 
-  const login = useCallback(async (token: string, refresh: string) => {
-    localStorage.setItem("clientflow_token", token);
-    localStorage.setItem("clientflow_refresh", refresh);
+  const login = useCallback(async () => {
     await fetchMe();
   }, [fetchMe]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     setUser(null);
+    try {
+      await apiRequest("/auth/logout", "POST");
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+    // Also clear tokens from localStorage if they still exist there
     localStorage.removeItem("clientflow_token");
     localStorage.removeItem("clientflow_refresh");
   }, []);

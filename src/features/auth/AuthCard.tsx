@@ -37,6 +37,7 @@ export function AuthCard({ mode }: { mode: "login" | "register" }) {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: formData.toString(),
+          credentials: 'include',
         });
 
         if (!response.ok) {
@@ -44,8 +45,7 @@ export function AuthCard({ mode }: { mode: "login" | "register" }) {
           throw new Error(error.detail || "Login failed");
         }
 
-        const data = await response.json();
-        await login(data.access_token, data.refresh_token);
+        await login();
         toast.success("Welcome back");
       } else {
         // Register
@@ -64,9 +64,10 @@ export function AuthCard({ mode }: { mode: "login" | "register" }) {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: formData.toString(),
+          credentials: 'include',
         });
-        const loginData = await loginRes.json();
-        await login(loginData.access_token, loginData.refresh_token);
+        if (!loginRes.ok) throw new Error("Registration succeeded but auto-login failed");
+        await login();
         toast.success("Account created successfully");
       }
       navigate("/dashboard");
