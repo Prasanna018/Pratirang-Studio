@@ -61,7 +61,6 @@ export function AppLayout() {
               </motion.div>
             </AnimatePresence>
           </main>
-          {loc.pathname !== "/reports" && <RightSidebar />}
         </div>
       </div>
       <TaskFormModal 
