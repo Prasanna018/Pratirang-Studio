@@ -12,8 +12,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import useSWR, { useSWRConfig } from "swr";
 import { fetcher, apiRequest } from "@/lib/api";
+import { useSearchParams } from "react-router-dom";
 
 type Filter = "today" | "tomorrow" | "upcoming" | "month" | "custom";
+
+const VALID_FILTERS: Filter[] = ["today", "tomorrow", "upcoming", "month", "custom"];
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: "today",    label: "Today" },
@@ -25,7 +28,13 @@ const FILTERS: { id: Filter; label: string }[] = [
 
 export default function Work() {
   const { mutate } = useSWRConfig();
-  const [filter, setFilter] = useState<Filter>("today");
+  const [searchParams] = useSearchParams();
+
+  // Read ?filter= from URL (e.g. set by Dashboard "View all" arrow)
+  const urlFilter = searchParams.get("filter") as Filter | null;
+  const initialFilter: Filter = urlFilter && VALID_FILTERS.includes(urlFilter) ? urlFilter : "today";
+
+  const [filter, setFilter] = useState<Filter>(initialFilter);
   const [customDate, setCustomDate] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Task | null>(null);

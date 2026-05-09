@@ -112,50 +112,68 @@ export default function Dashboard() {
           transition={{ delay: 0.1 }}
           className="overflow-hidden rounded-3xl border border-border bg-card shadow-soft lg:col-span-2"
         >
-          <div className="flex flex-col sm:flex-row">
-            {/* Tab rail */}
-            <div className="w-full border-b border-border bg-surface-2/40 p-5 sm:w-52 sm:border-b-0 sm:border-r">
-              <h2 className="font-display text-xl text-foreground">Up Next</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">All clients · live</p>
-              <div className="mt-4 space-y-1">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 transition ${
-                      activeTab === tab.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-surface-2"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className="h-2 w-2 rounded-full" style={{ background: tab.color }} />
-                      <span className="text-sm font-medium">{tab.label}</span>
-                    </div>
-                    <span className="text-xs font-bold opacity-60">{tab.count}</span>
-                  </button>
-                ))}
+          {/* Header + horizontal tabs */}
+          <div className="border-b border-border bg-surface-2/40 px-5 pt-5 pb-0">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="font-display text-xl text-foreground">Up Next</h2>
+                <p className="text-xs text-muted-foreground">All clients · live</p>
               </div>
             </div>
-            {/* Tab content */}
-            <div className="flex-1 p-5" style={{ minHeight: 240 }}>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.18 }}
-                  className="space-y-3"
+            {/* Horizontal tab pills */}
+            <div className="flex gap-2 overflow-x-auto pb-0 scrollbar-thin">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative flex shrink-0 items-center gap-2 rounded-t-xl border-b-2 px-4 py-2.5 text-sm font-medium transition-all ${
+                    activeTab === tab.id
+                      ? "border-primary text-primary bg-primary/5"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:bg-surface-2"
+                  }`}
                 >
-                  {loading ? (
-                    [0, 1].map((i) => <Shimmer key={i} className="h-20 rounded-2xl" />)
-                  ) : tabItems.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-2 text-muted-foreground/40">
-                        <CalendarIcon className="h-5 w-5" />
-                      </div>
-                      <p className="text-sm text-muted-foreground">Nothing for {activeTab}</p>
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ background: tab.color }}
+                  />
+                  {tab.label}
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none ${
+                      activeTab === tab.id
+                        ? "bg-primary/15 text-primary"
+                        : "bg-surface-3 text-muted-foreground"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tab content */}
+          <div className="p-5" style={{ minHeight: 220 }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18 }}
+              >
+                {loading ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {[0, 1, 2, 3].map((i) => <Shimmer key={i} className="h-20 rounded-2xl" />)}
+                  </div>
+                ) : tabItems.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 text-center">
+                    <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-2 text-muted-foreground/40">
+                      <CalendarIcon className="h-5 w-5" />
                     </div>
-                  ) : (
+                    <p className="text-sm text-muted-foreground">Nothing scheduled for {activeTab}</p>
+                  </div>
+                ) : (
+                  <>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {tabItems.slice(0, 4).map((t, i) => (
                         <motion.div
@@ -182,10 +200,21 @@ export default function Dashboard() {
                         </motion.div>
                       ))}
                     </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+
+                    {/* "View all" arrow — only when more than 4 tasks */}
+                    {tabItems.length > 4 && (
+                      <Link
+                        to={`/work?filter=${activeTab}`}
+                        className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-dashed border-border py-2.5 text-xs font-semibold text-muted-foreground transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                      >
+                        View all {tabItems.length - 4} more in Work
+                        <ArrowUpRight className="h-3.5 w-3.5" />
+                      </Link>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </motion.div>
 

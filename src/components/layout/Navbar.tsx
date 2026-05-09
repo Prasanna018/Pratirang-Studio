@@ -1,4 +1,4 @@
-import { Search, Moon, Sun, Bell, Menu, Command } from "lucide-react";
+import { Search, Moon, Sun, Menu, Command } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
@@ -93,15 +93,6 @@ export function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </motion.button>
-
-            {/* Notifications */}
-            <button
-              id="navbar-notifications"
-              className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
-            >
-              <Bell className="h-4 w-4" />
-              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-destructive" />
-            </button>
 
             {/* User pill */}
             <div className="flex items-center gap-2.5 rounded-xl border border-border bg-card py-1 pl-1 pr-3">
