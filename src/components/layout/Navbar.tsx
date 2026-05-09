@@ -1,56 +1,94 @@
-import { Search, Moon, Sun, Bell, LogOut, Menu } from "lucide-react";
+import { Search, Moon, Sun, Bell, Menu, Command } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
+
+const PAGE_TITLES: Record<string, string> = {
+  "/dashboard": "Dashboard",
+  "/work": "Work",
+  "/clients": "Clients",
+  "/overview": "Overview",
+  "/reports": "Reports",
+  "/settings": "Settings",
+};
 
 export function Navbar({ onMenuClick }: { onMenuClick: () => void }) {
-  const { user, logout, theme, toggleTheme } = useApp();
-  const initials = user?.username?.slice(0, 2).toUpperCase() ?? "U";
+  const { user, theme, toggleTheme } = useApp();
+  const loc = useLocation();
+  const initials = user?.username?.slice(0, 2).toUpperCase() ?? "PS";
+  const pageTitle = Object.entries(PAGE_TITLES).find(([k]) => loc.pathname.startsWith(k))?.[1] ?? "Studio";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-background/80 px-4 md:px-6 backdrop-blur-xl">
-      <button
-        onClick={onMenuClick}
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground md:hidden"
+    <header className="sticky top-0 z-30 px-4 pt-4 pb-0 md:px-6">
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="flex h-14 items-center gap-4 rounded-2xl border border-border/60 bg-background/70 px-4 backdrop-blur-xl shadow-float"
       >
-        <Menu className="h-5 w-5" />
-      </button>
-      <div className="relative max-w-sm flex-1 hidden xs:block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          placeholder="Search clients, tasks, ideas…"
-          className="h-10 w-full rounded-xl border border-border bg-surface-2 pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <motion.button
-          whileTap={{ scale: 0.92 }}
-          onClick={toggleTheme}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:text-foreground"
-          aria-label="Toggle theme"
+        {/* Mobile menu */}
+        <button
+          id="navbar-menu"
+          onClick={onMenuClick}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:text-foreground md:hidden"
         >
-          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </motion.button>
-        <button className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:text-foreground">
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-destructive" />
+          <Menu className="h-4 w-4" />
         </button>
-        <div className="ml-2 flex items-center gap-3 rounded-xl border border-border bg-card py-1 pl-1 pr-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary text-xs font-semibold text-primary-foreground">
-            {initials}
-          </div>
-          <div className="hidden text-xs sm:block">
-            <div className="font-medium">{user?.username}</div>
-            <div className="text-muted-foreground">Workspace</div>
-          </div>
-          <button
-            onClick={logout}
-            className="ml-1 rounded-lg p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-            aria-label="Logout"
-          >
-            <LogOut className="h-3.5 w-3.5" />
+
+        {/* Page title */}
+        <div className="hidden md:block">
+          <h2 className="font-display text-base text-foreground">{pageTitle}</h2>
+        </div>
+
+        {/* Search — visual command palette trigger */}
+        <div className="flex-1 max-w-xs hidden sm:block">
+          <button className="flex h-9 w-full items-center gap-2.5 rounded-xl border border-border bg-surface-2 px-3 text-sm text-muted-foreground transition hover:border-primary/40 hover:text-foreground">
+            <Search className="h-3.5 w-3.5 shrink-0" />
+            <span className="flex-1 text-left text-xs">Search anything…</span>
+            <kbd className="hidden items-center gap-0.5 rounded border border-border bg-card px-1.5 py-0.5 text-[10px] font-medium sm:flex">
+              <Command className="h-2.5 w-2.5" />K
+            </kbd>
           </button>
         </div>
-      </div>
+
+        <div className="ml-auto flex items-center gap-2">
+          {/* Theme toggle */}
+          <motion.button
+            id="navbar-theme"
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleTheme}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </motion.button>
+
+          {/* Notifications */}
+          <button
+            id="navbar-notifications"
+            className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
+          >
+            <Bell className="h-4 w-4" />
+            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-destructive" />
+          </button>
+
+          {/* User pill */}
+          <div className="flex items-center gap-2.5 rounded-xl border border-border bg-card py-1 pl-1 pr-3">
+            <div
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-[11px] font-bold text-white"
+              style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)" }}
+            >
+              {initials}
+            </div>
+            <div className="hidden text-xs sm:block">
+              <div className="font-semibold text-foreground leading-tight">{user?.username}</div>
+              <div className="text-muted-foreground capitalize leading-tight">{user?.role || "staff"}</div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+      {/* Spacer so content doesn't go under the floating bar */}
+      <div className="h-2" />
     </header>
   );
 }

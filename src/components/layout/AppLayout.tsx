@@ -54,8 +54,8 @@ export function AppLayout() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.25 }}
-                className="px-6 py-8 lg:px-10"
+                transition={{ duration: 0.22 }}
+                className="px-5 pb-10 pt-4 lg:px-8"
               >
                 <Outlet />
               </motion.div>
